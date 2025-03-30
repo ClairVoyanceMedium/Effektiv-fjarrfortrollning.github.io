@@ -944,5 +944,716 @@
   </a>
   <br>
 </footer>
+<title>AI-chatt med Spårning och Röstassistent</title>
+    <meta name="description" content="Andlig chatbot för avbesvärjelse, ClairVoyanceGPT. Skydd och rening av aura av Frederick från ClairVoyanceMedium.com. Återfå vitalitet och sinnesro snabbt för ett fast pris.">
+    <meta name="keywords" content="förtrollad, mardrömmar, ClairVoyanceGPT, avbesvärjelse, skydd, rening, energirengöring, clairvoyance, aura, energi, behov, hjälp, sömn, ritualer, andlig">
+    <style>
+        #chat-container {
+            position: fixed;
+            display: inline-block;
+            flex-direction: column;
+            z-index: 999999;
+            font-family: Arial, sans-serif;
+            transition: transform 0.2s;
+        }
+        #chat-bubble {
+            display: flex;
+            justify-content: flex-end;
+            cursor: move;
+        }
+        #chat-toggle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #FFB6C1, #FF69B4);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(255,105,180,0.7);
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            outline: none;
+        }
+        #chat-toggle:hover {
+            transform: scale(1.05);
+        }
+        #voice-toggle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #87CEEB, #5eb6d1);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(135,206,235,0.7);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            transition: transform 0.2s;
+            outline: none;
+        }
+        #voice-toggle:hover {
+            transform: scale(1.05);
+        }
+        #voice-toggle.disabled {
+            background: #808080;
+            box-shadow: 0 0 10px #808080;
+        }
+        #chat-box {
+            background: #111;
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            margin-top: 10px;
+            border: 2px solid #FF1493;
+            box-shadow: 0 0 10px #FF1493;
+            transition: all 0.3s ease;
+            max-height: 400px;
+        }
+        #chat-box.visible {
+            display: flex;
+        }
+        #chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            color: #fff;
+        }
+        #chat-messages p {
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        .bot-message {
+            text-align: left;
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-bottom: 0.8rem;
+            display: inline-block;
+            max-width: 80%;
+            border: 2px solid #FF69B4;
+            box-shadow: 0 0 8px #FF69B4;
+        }
+        .user-message {
+            text-align: right;
+            color: #ffd700;
+            margin-bottom: 0.8rem;
+            border: 2px solid #AED6F1;
+            box-shadow: 0 0 8px #AED6F1;
+            padding: 0.5rem;
+            border-radius: 5px;
+            display: inline-block;
+            max-width: 80%;
+        }
+        #chat-form {
+            display: flex;
+            border-top: 1px solid #333;
+            align-items: center;
+            padding: 0.5rem;
+        }
+        #chat-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            outline: none;
+            color: #333;
+            border-radius: 5px 0 0 5px;
+        }
+        #chat-send {
+            background: #87CEEB;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 0 5px 5px 0;
+            transition: background 0.2s;
+        }
+        #chat-send:hover {
+            background: #5eb6d1;
+        }
+        @media(max-width: 400px) {
+            #chat-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="chat-container">
+    <div id="chat-bubble">
+        <button id="chat-toggle" aria-expanded="false" aria-label="Öppna chatt">💬</button>
+        <button id="voice-toggle" aria-label="Aktivera/Inaktivera röstassistent">🎤</button>
+    </div>
+    <div id="chat-box" role="region" aria-label="AI-chatt">
+        <div id="chat-messages" aria-live="polite"></div>
+        <form id="chat-form" aria-label="Inmatningsformulär för AI-chatt">
+            <input type="text" id="chat-input" placeholder="Ställ din fråga..." aria-label="Skriv ditt meddelande här" autocomplete="off">
+            <button type="submit" id="chat-send" aria-label="Skicka din fråga">➤</button>
+        </form>
+    </div>
+</div>
 
+<script>
+// Spårningsfunktion integrerad med GA4
+function trackClick(label, category = 'Chatt', value = null) {
+    console.log(`Spårning: Label=${label}, Category=${category}, Value=${value}`);
+    if (typeof gtag === 'function') {
+        gtag('event', label, { 'event_category': category, 'value': value });
+    }
+}
+
+// Översättningar och meddelanden
+const translations = {
+    greeting: "Hej, kul att träffa dig! Jag är ClairVoyanceGPT, den virtuella väktaren från ClairVoyanceMedium.com, här för att hjälpa dig att befria din själ från mörka slöjor och lysa upp din livsväg. Vilken andlig resa vill du utforska idag?",
+    thanks: "Varsågod.",
+    goodbye: "Vi ses snart i det eviga ljuset! Frederick, som har hjälpt tusentals själar, omger dig med sin ständiga vaksamhet. Du är inte längre ensam mot skuggorna, för veta att hans kraft överskrider allt mörker.",
+    notUnderstood: "Jag förstod inte din fråga helt. Kan du omformulera den, kanske med andra ord, så jag kan förstå bättre?",
+    notUnderstoodAfter: "Det verkar som om vi har svårt att förstå varandra. Kanske är det dags att överväga en djup och fullständig avbesvärjelse för att återställa balansen i alla dina energier. Våra tjänster börjar från 50€ för en detektion, 250€ för en total ritual och från 6,00€ för en konsultation via email. Du hittar all denna hjälp på hemsidan.",
+    grave: "Din situation verkar extremt allvarlig. Det är viktigt att agera omedelbart. Jag rekommenderar att du vidtar nödvändiga åtgärder utan dröjsmål. Låt inte mörkret ta över för evigt.",
+    agree: "Okej, tveka inte att ställa fler frågor.",
+};
+
+// Kunskapsbas med "Fördelar" ersatta med synonymer
+const knowledgeBase = [
+    { question: "Trötthet | Utmattning | Slöhet | Utmattning | Svaghet | Förslitning", fullAnswer: "Denna överväldigande trötthet är verket av en mörk entitet som förtär din energi; anförtro din auras rening åt Frederick från ClairVoyanceMedium.com för att återfå din vitalitet. Det kan vara ett tecken på en mörk entitet som dränerar din livsenergi dag efter dag. Frederick, expert på andlig rening hos ClairVoyanceMedium.com, använder uråldriga ritualer för att rena din aura och driva bort dessa skadliga krafter. Genom att agera snabbt kan du återfå en strålande vitalitet och en klarhet som låter dig ta tillbaka kontrollen över ditt liv. Fördelar: återställd dynamik och återvunnen klarhet." },
+    { question: "Mardrömmar | Visioner | Nätter | Dröm | Sova | Drömmar", fullAnswer: "Dessa mardrömmar är inte bara vanliga drömmar, de är resultatet av en ondskefull närvaro; låt Frederick från ClairVoyanceMedium.com jaga bort dessa skuggor för att ge dig lugna nätter. De kan vara manifestationer av en ondskefull närvaro som infiltrerar ditt sinne under sömnen. Frederick, med sina 25 års erfarenhet, behärskar kraftfulla ritualer för att driva bort dessa skuggor och rena din viloplats. När du är befriad från dessa intrång kommer du att återfå lugna nätter och en återhämtande sömn, viktig för din välbefinnande. Fördelar: återhämtning och nattlig ro." },
+    { question: "Kaos | Turbulens | Förvirring | Förtvivlan | Virvel | Ångest", fullAnswer: "Kaoset som omger dig kommer vanligtvis från en störande förbannelse; låt Frederick från ClairVoyanceMedium.com återställa ordningen för att återställa din mentala balans. Förvirring, ångest, förtvivlan - detta invaderande kaos är ofta ett tecken på en störande förbannelse som kastats över dig. Frederick, specialist på avbesvärjelse, kan ingripa för att återställa ordningen genom att skingra dessa negativa energier. Tack vare hans expertis kommer du att återfå mental stabilitet och inre lugn som är avgörande för att gå framåt med ro. Fördelar: harmoni och inre frid." },
+    { question: "Tyngd | Förtryck | Kvävning | Vikt | Ångest | Krossande", fullAnswer: "Denna tyngd som förtrycker din själ är en mörk kraft som verkar; vänd dig till Frederick från ClairVoyanceMedium.com för att befria dig och återfå lätthet och dynamik. Denna känsla av kvävning eller krossande är typisk för en mörk kraft som riktar sig mot din själ. Frederick, genom riktade ritualer, kan bryta detta grepp och befria ditt sinne. När du är renad kommer du att känna en återvunnen lätthet och en förnyad energi för att möta varje dag med styrka. Fördelar: befrielse och återställd vitalitet." },
+    { question: "Förtrollning | Förbannelse | Besvärjelse | Tjuskraft | Magi | Häxeri", fullAnswer: "Utmattning, svaghet, otur och mardrömmar beror sannolikt på en besvärjelse som håller dig fången; använd Fredericks ingripande från ClairVoyanceMedium.com för att bryta dessa ockulta band och öppna vägen till framgång. Bestående trötthet, kronisk otur och återkommande mardrömmar är klassiska tecken på en besvärjelse eller förtrollning. Hos ClairVoyanceMedium.com excellerar Frederick i avbesvärjelse, använder kraftfulla ritualer för att bryta dessa ockulta band, oavsett om det är en förbannelse, svart magi eller häxeri, befriar dig för en återvunnen lycka och bestående framgång i alla aspekter av ditt liv. Fördelar: återvunnen välstånd och säker framgång." },
+    { question: "Misslyckande | Motgång | Fall | Nederlag | Olycka | Förlust", fullAnswer: "Upprepade misslyckanden beror på en besvärjelse som blockerar din väg; låt Frederick från ClairVoyanceMedium.com öppna din väg till framgång och förvandla din professionella bana. Dessa motgångar är ingen slump: en besvärjelse blockerar din väg till framgång. Frederick, med sin skicklighet, kan lyfta dessa osynliga hinder och förvandla din bana, garantera dig en säker framsteg och bestående framgång i din karriär eller personliga projekt. Fördelar: seger och garanterad framsteg." },
+    { question: "Sömnlöshet | Rastlöshet | Vita nätter | Flyende | Vaka | Oro", fullAnswer: "Din sömnlöshet orsakas av en entitet som berövar dig vila; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa din nattliga frid och ge dig en återhämtande sömn. Vita nätter och rastlöshet orsakas ofta av en entitet som stör din vila. Frederick, expert på rening, kan jaga bort dessa påverkan och återställa en nattlig frid som är avgörande, garantera dig en återhämtande sömn och en daglig energi för att möta dina dagar med styrka. Fördelar: djup sömn och daglig styrka." },
+    { question: "Smärta | Ont | Lidande | Brännande | Sorg | Plåga", fullAnswer: "Obefogliga smärtor återspeglar en ockult attack på din kropp; låt Frederick lindra dig för att skingra detta osynliga ont. Brännande, plågor - dessa smärtor kan vara en ockult attack riktad mot din kropp. Frederick, tack vare sina andliga helande ritualer, skingrar detta osynliga ont för att ge dig omedelbar lättnad och en bestående komfort genom att befria din kropp från detta grepp. Fördelar: omedelbar lättnad och återvunnen välbefinnande." },
+    { question: "Isolering | Ensamhet | Övergivenhet | Nöd | Tillbakadragenhet | Iskall", fullAnswer: "Den isolering du känner beror på en besvärjelse som skiljer dig från andra; anförtro din försoning åt Frederick från ClairVoyanceMedium.com för att återupprätta varma och harmoniska band. Denna ensamhet är inte naturlig: en besvärjelse skär av dig från andra. Frederick kan bryta denna förbannelse och återupprätta varma band med din omgivning, återföra dig till kontakt och socialt välbefinnande med familj, vänner eller kollegor. Fördelar: närmande och social tillfredsställelse." },
+    { question: "Karriär | Arbete | Ambition | Stagnation | Blockering | Fiasko", fullAnswer: "Hindren i din karriär är tecken på en förbannelse som bromsar din ambition; låt Frederick från ClairVoyanceMedium.com frigöra din potential och ge din professionella framtid energi. Stagnation och upprepade misslyckanden beror ofta på en förbannelse som bromsar din ambition. Frederick, tack vare sina ritualer, frigör din potential och ger din professionella framtid energi, leder dig till framgång och tillfredsställelse i din karriär eller personliga projekt. Fördelar: triumf och professionell uppfyllelse." },
+    { question: "Otur | Olycka | Slump | Pech | Olycksbringande | Katastrof", fullAnswer: "Den otur du upplever orsakas av en 100% mörk besvärjelse; vänd dig till Frederick från ClairVoyanceMedium.com för att vända händelsernas gång och locka till dig lycka. Olyckor och katastrofer är verket av en mörk besvärjelse. Frederick kan vända denna olycksaliga gång genom att rena din aura och locka till dig lycka i ditt liv, öppna för nya möjligheter och en återvunnen förmögenhet. Fördelar: möjligheter och återställd överflöd." },
+    { question: "Kärlek | Passion | Romantik | Bruten | Kärlekslöshet | Känslomässig", fullAnswer: "Bristen på kärlek beror på en besvärjelse som låser ditt hjärta; låt Frederick från ClairVoyanceMedium.com öppna det för ömhet och återuppliva ditt kärleksliv. Brustna hjärtan eller känslomässig ensamhet orsakas ofta av en besvärjelse som låser ditt hjärta. Frederick, expert på känslomässig harmoni, kan lyfta denna barriär och återuppliva ditt kärleksliv, ge dig ömhet och harmoni för att återfå en förlorad kärlek eller locka till dig en ny. Fördelar: tillgivenhet och känslomässig balans." },
+    { question: "Familj | Hem | Oenighet | Spänning | Bräcka | Konflikt", fullAnswer: "Familjespänningar är resultatet av en ockult skugga som delar ditt hem; anförtro harmoniseringen av dina relationer åt Frederick från ClairVoyanceMedium.com för ett enat och fridfullt hem. Konflikter och spänningar i din familj är ofta resultatet av en ockult skugga som sår oenighet. Frederick kan harmonisera dina relationer genom att rena ditt hem från negativa energier, återföra enhet och frid för en fristad av lugn. Fördelar: enhet och familjefrid." },
+    { question: "Barn | Små | Avkomma | Son | Dotter | Ungar", fullAnswer: "Dina barns sorg återspeglar en mörk påverkan som påverkar dem; vänd dig till Frederick från ClairVoyanceMedium.com för att rena deras aura och ge dem tillbaka leendet. Sorg eller bekymmer för dina barn kan återspegla en mörk påverkan som tynger dem. Frederick, med anpassade ritualer, rena deras aura och driver bort dessa negativa energier, återför välbefinnande och glädje till hela familjen. Fördelar: lycka och familjetillfredsställelse." },
+    { question: "Djur | Följeslagare | Bestar | Nervositet | Störning | Instinkt", fullAnswer: "Dina djurs rastlöshet indikerar en mörk närvaro som stör deras balans, det är inte oviktigt; låt Frederick från ClairVoyanceMedium.com återställa frid och lugn i deras miljö. Nervositet och ovanliga störningar signalerar en mörk närvaro i deras miljö. Frederick kan rena detta utrymme och återställa deras naturliga balans, erbjuda lugn och harmoni till dina följeslagare och ditt hem. Fördelar: lugn och balans för dina följeslagare." },
+    { question: "Hus | Bostad | Hem | Atmosfär | Mörker", fullAnswer: "Den tryckande atmosfären i ditt hem är infekterad av svarta energier; låt Frederick från ClairVoyanceMedium.com rena din bostad för att göra den till en ljus fristad. Inre rädsla och mörker signalerar svarta energier som infiltrerat. Frederick, expert på bostadsrening, kan förvandla ditt hem till en ljus fristad, ge dig komfort och välbefinnande i ditt hem, en plats där du äntligen känner dig trygg. Fördelar: komfort och hemtrevnad." },
+    { question: "Bil | Fordon | Transport | Fel | Fara | Resa", fullAnswer: "De mystiska felen på ditt fordon orsakas av en mörk besvärjelse; anförtro din bil åt Frederick från ClairVoyanceMedium.com så att den återfår säkerhet och tillförlitlighet. Incidenter på vägen kan härröra från en mörk besvärjelse. Frederick kan rena ditt transportmedel, eliminera dessa skadliga influenser, garantera dig lugn och säkerhet på vägen. Fördelar: lugn och vägskydd." },
+    { question: "Närvaro | Skugga | Spöke | Aura | Rysning | Intrång", fullAnswer: "Känslan av att bli följd är resultatet av en illvillig entitet; låt Frederick från ClairVoyanceMedium.com skydda dig mot alla intrång för ett lugnt liv. Rysningar eller känsla av att bli följd orsakas av en illvillig entitet eller en mörk kraft som lurar runt dig. Frederick kan upprätta ett kraftfullt skydd mot dessa intrång, garantera dig säkerhet och sinnesfrid. Fördelar: skydd och mental ro." },
+    { question: "Ångest | Rädsla | Panik | Skräck | Fasa | Förfäran", fullAnswer: "Din ångest genereras av en destruktiv besvärjelse som stör din balans; vänd dig till Frederick från ClairVoyanceMedium.com för att eliminera denna rädsla och skapa frid. Panik och fasa som paralyserar dig orsakas ofta av en destruktiv besvärjelse. Frederick kan eliminera dessa störande energier och skapa en bestående frid i dig, återge dig en djup ro och en förstärkt självförtroende för att möta framtiden. Fördelar: lättnad och förstärkt självförtroende." },
+    { question: "Irritabilitet | Ilska | Frustration | Raseri | Otålighet | Retlighet", fullAnswer: "Din irritation återspeglar mycket sannolikt en ockult kraft som stör din harmoni; använd Fredericks expertis från ClairVoyanceMedium.com för att återställa mildhet och frid. Ilska och frustration kan vara reflektioner av en ockult kraft som stör din inre harmoni. Frederick, med sin expertis, återställer mildhet och frid genom att skingra dessa influenser, ge dig emotionell stabilitet och långvarigt välbefinnande. Fördelar: emotionell ro och harmoni." },
+    { question: "Koncentration | Klarhet | Uppmärksamhet | Sorg | Oklarhet | Spriddhet | Förlust", fullAnswer: "Ditt förvirrade sinne är offer för en störande besvärjelse; låt Frederick från ClairVoyanceMedium.com fokusera dina tankar för att återfå klarhet och fokus. Mental oklarhet och förlust av fokus är ofta målet för en störande besvärjelse. Frederick kan fokusera dina tankar genom att eliminera dessa ockulta störningar, garantera dig en ökad koncentration och förbättrad produktivitet i dina dagliga uppgifter. Fördelar: optimerad uppmärksamhet och ökad effektivitet." },
+    { question: "Minnesförlust | Glömska | Minne | Amnesi | Oreda | Hål", fullAnswer: "Minnesförluster beror mycket ofta på en mörk besvärjelse som påverkar din mentala klarhet; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa dina minnen och din luciditet. Mental förvirring eller minnesluckor kan härröra från en mörk besvärjelse. Frederick, tack vare precisa ritualer, återställer dina minnen och din luciditet genom att skingra dessa influenser, ge dig ett stärkt minne och ett skarpt sinne. Fördelar: stärkt minne och mental skärpa." },
+    { question: "Släkt | Arv | Förfäder | Familjär | Förflutet | Börda", fullAnswer: "Den förbannelse som vilar på din släkt är en börda på din arv; anförtro dig åt Frederick från ClairVoyanceMedium.com för att befria dig från denna släktbörda. En tyngd från generation till generation kan vila på din släkt. Frederick kan bryta denna cykel genom att rena ditt andliga arv, öppna vägen för en släktfrihet och en djup personlig förnyelse. Fördelar: släktbefrielse och personlig förnyelse." },
+    { question: "Begränsning | Skruvstäd | Kvävning | Tryck | Yrsel | Fångenskap", fullAnswer: "Det förtryck du upplever är en mörk kraft som krossar dig; låt Frederick från ClairVoyanceMedium.com befria dig för att återfå lätthet och empowerment. Känsla av skruvstäd eller kvävning - detta förtryck är en mörk kraft riktad mot din varelse. Frederick kan befria dig från detta grepp med kraftfulla ritualer, ge dig lätthet och empowerment för att leva fullt ut. Fördelar: frihet och återställd kraft." },
+    { question: "Plåga | Sorg | Smärta | Elände | Sår | Lidande", fullAnswer: "Det lidande du upplever härrör från en ockult attack på din varelse; vänd dig till Frederick från ClairVoyanceMedium.com för att hela dig och sätta stopp för denna plåga. Sorg och smärta kan härröra från en ockult attack. Frederick, tack vare sina färdigheter i andlig helning, sätter stopp för denna plåga genom att rena din varelse, ge dig en snabb läkning och en bestående lättnad för att återfå inre frid. Fördelar: snabb återhämtning och bestående lättnad." },
+    { question: "Avkoppling | Tomhet | Separation | Främlingskap | Intighet | Avgrund", fullAnswer: "Den inre tomhet som skiljer dig från dig själv är resultatet av en isolerande besvärjelse; låt Frederick från ClairVoyanceMedium.com återansluta dig till din essens för att återfå din identitet. Denna frånkoppling från dig själv orsakas ofta av en isolerande besvärjelse. Frederick kan återansluta dig till din djupa essens genom att skingra dessa energier, ge dig en inre enhet och en långvarig harmoni. Fördelar: inre sammanhängande och återvunnen balans." },
+    { question: "Vibration | Energi | Halo | Utmattning | Demon | Skugga | Mörker", fullAnswer: "Din matta aura är förorenad av mörker; anförtro dess rening åt Frederick från ClairVoyanceMedium.com för att avslöja ljuset inom dig. En störd aura signalerar en förorening av mörka energier. Frederick, expert på aurarening, kan avslöja ljuset inom dig genom att jaga bort detta mörker, ge dig en positiv energi och en återupplivad strålning för din andliga välbefinnande. Fördelar: positiv vitalitet och återupplivad glans." },
+    { question: "Projekt | Ambitioner | Planer | Stagnation | Dröm | Hinder", fullAnswer: "Dina ambitioner hindras av en ondskefull besvärjelse som blockerar din väg; låt Frederick frigöra din potential för att aktivera framgångsrika projekt. Hindren för dina projekt beror ofta på en ondskefull besvärjelse. Frederick kan frigöra din potential genom att eliminera dessa blockeringar, låta dig aktivera framgångsrika projekt med en återvunnen kreativ dynamik och en bestående framgång. Fördelar: framgång och kreativ kraft." },
+    { question: "Stress | Nervositet | Utmattning | Överbelastning | Rastlöshet | Plåga", fullAnswer: "Den stress som tynger dig är ett grepp av en ockult kraft som stör ditt sinne; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa balansen och lugna dina spänningar. Stress och nervositet kan vara ett grepp av en ockult kraft. Frederick återställer balansen genom att lugna dessa spänningar med riktade ritualer, ge dig en dyrbar sinnesro och mental lugn. Fördelar: lugn och mental frid." },
+    { question: "Öde | Väg | Mörker | Mening | Osäkerhet | Ödesmakt | Förtvivlan", fullAnswer: "Ditt öde är täckt av en besvärjelse som mörklägger ditt liv; låt Frederick från ClairVoyanceMedium.com lysa upp din väg för att leda dig mot en strålande förnyelse. Ett öde täckt eller en förlust av mening signalerar en besvärjelse som mörklägger din väg. Frederick kan lysa upp din väg genom att skingra dessa skuggor, leda dig mot en strålande förnyelse med ett återfunnet hopp och en djup personlig förvandling. Fördelar: hopp och personlig metamorfos." },
+    { question: "Barriär | Hinder | Mur | Maktlöshet | Stopp | Paralys", fullAnswer: "De blockeringar du möter är ockulta bojor som bromsar din framfart; låt Frederick från ClairVoyanceMedium.com bryta dem så att du kan gå framåt fritt. Maktlöshet och osynliga murar är ockulta bojor. Frederick kan bryta dem, låta dig gå framåt fritt i dina projekt och ditt liv med en återvunnen flyt och handlingsfrihet. Fördelar: lätthet och återvunnen autonomi." },
+    { question: "Tröghet | Långsamhet | Stillastående | Upphängning | Frysa | Fängelse", fullAnswer: "Din stagnation är resultatet av en besvärjelse som fryser din energi; vänd dig till Frederick från ClairVoyanceMedium.com för att sätta igång dig igen och återfå rörelse och vitalitet. Tröghet och långsamhet orsakas av en besvärjelse som fryser din energi. Frederick kan sätta igång dig igen genom att frigöra denna fängslade vitalitet, ge dig en dynamik och en säker framsteg. Fördelar: kraft och återställd framsteg." },
+    { question: "Humör | Dysterhet | Instabilitet | Svängningar | Melankoli | Nedstämdhet", fullAnswer: "De mörka variationerna i ditt humör beror på en störande besvärjelse av din emotionella balans; vänd dig till Frederick från ClairVoyanceMedium.com för att stabilisera ditt tillstånd och återuppliva din livsglädje. Humörsvängningar eller dystra stämningar beror ofta på en besvärjelse som stör din emotionella balans. Frederick kan stabilisera ditt tillstånd och återuppliva din livsglädje genom att skingra dessa influenser, återge dig en emotionell balans och ett långvarigt välbefinnande. Fördelar: emotionell stabilitet och lycka." },
+    { question: "Frånvaro | Öken | Brist | Torrhet | Torka | Avgrund", fullAnswer: "Den inre tomhet som invaderar dig orsakas av en negativ energi som dränerar; låt Frederick från ClairVoyanceMedium.com fylla den med ljus och vitalitet. Frånvaro och torrhet orsakas av en negativ energi som dränerar. Frederick kan fylla denna öken i dig med ljus och vitalitet, regenerera dig djupt för en bestående fullhet. Fördelar: överflöd och energiregeneration." },
+    { question: "Hälsa | Vitalitet | Styrka | Mental | Skörhet | Nedgång", fullAnswer: "De besvär som plågar dig härrör från en besvärjelse som försvagar din hälsa; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa dig och stärka din vitalitet. Skörhet och besvär kan härröra från en besvärjelse. Frederick återställer din vitalitet genom att eliminera dessa skadliga influenser, stärka din kropp och ditt sinne för en robust hälsa och en ökad energi. Fördelar: robusthet och optimerad styrka." },
+    { question: "Broms | Kedja | Begränsning | Inneslutning | Hinder | Bur", fullAnswer: "De fysiska begränsningar du upplever är resultatet av en restriktiv besvärjelse; låt Frederick befria dig så att du kan blomstra fullt ut. Hinder och inneslutning beror ofta på en restriktiv besvärjelse. Frederick kan befria dig från dessa osynliga kedjor, låta dig blomstra fullt ut med en återvunnen rörelsefrihet och styrka. Fördelar: flyt och återställd styrka." },
+    { question: "Dränering | Sugg | Siphon | Vampirism | Förlust | Avgrund", fullAnswer: "Utmattningen av din energi orsakas av en vampyrentitet som dränerar din vitalitet; låt Frederick återuppliva dig för att återställa din inre styrka. En energisiphon är verket av en vampyrentitet. Frederick kan återuppliva dig genom att stoppa denna dränering, återställa din inre styrka för en energiförnyelse och en förbättrad uthållighet. Fördelar: återupplivning och ökad motståndskraft." },
+    { question: "Val | Tvekan | Obeslutsamhet | Tvivel | Förvirring | Mardröm", fullAnswer: "Den obeslutsamhet som paralyserar dig induceras av en mörk besvärjelse; anförtro Frederick den nödvändiga vägledningen för att klargöra dina val och gå framåt. Tvivel och obeslutsamhet induceras ofta av en mörk besvärjelse som suddar din syn. Frederick erbjuder dig en andlig vägledning för att klargöra dina val, låta dig gå framåt med en återvunnen klarhet och självförtroende. Fördelar: klarhet och återställd självsäkerhet." },
+    { question: "Motivation | Kraft | Inspiration | Eld | Ledsamhet | Apati", fullAnswer: "Bristen på motivation som plågar dig beror på en besvärjelse som släcker din inre flamma; låt Frederick återuppliva din inspiration för att ge din kreativitet energi. Ledsamhet och apati signalerar en besvärjelse som släcker din inre flamma. Frederick kan återuppliva denna inspiration, ge din kreativitet energi för en kreativ kraft och en förnyad energi i dina projekt. Fördelar: kreativ kraft och förnyad vitalitet." },
+    { question: "Känslor | Passioner | Översvämning | Storm | Kaos | Tumult", fullAnswer: "De intensiva och kaotiska känslorna manipuleras av en mörk kraft; vänd dig till Frederick för att harmonisera dina känslor och skapa balans. Inre storm och översvämning kan manipuleras av en mörk kraft. Frederick harmoniserar dina känslor genom att skingra dessa influenser, skapa en emotionell stabilitet och en dyrbar inre frid. Fördelar: emotionell stabilitet och inre ro." },
+    { question: "Välbefinnande | Frid | Fred | Obekväm | Rädsla | Störning | Illamående", fullAnswer: "Ditt illamående är ett tecken på en ockult förorening som stör din frid; låt Frederick från ClairVoyanceMedium.com återställa ditt välbefinnande och skapa en bestående frid. Obekväm och störning signalerar en ockult förorening. Frederick återställer ditt välbefinnande genom att eliminera dessa energier, skapa en bestående frid för en harmoni och psykisk komfort som är avgörande för din tillfredsställelse. Fördelar: balans och psykisk komfort." },
+    { question: "Relationer | Band | Vänskap | Konflikt | Distans | Brytning", fullAnswer: "Brutna relationer är resultatet av en destruktiv besvärjelse som försvagar dina band; låt Frederick från ClairVoyanceMedium.com reparera och stärka dina emotionella kopplingar. Konflikter och brytningar med dina nära kan härröra från en destruktiv besvärjelse. Frederick reparerar och stärker dina emotionella kopplingar genom att rena dessa band, återföra dig till en försoning och en långvarig social harmoni. Fördelar: närmande och social enhet." },
+    { question: "Finanser | Pengar | Rikedom | Fattigdom | Flöde | Skuld", fullAnswer: "Ekonomiska svårigheter härrör från en besvärjelse som blockerar överflöd; anförtro Frederick från ClairVoyanceMedium.com uppdraget att återställa flödet av rikedom i ditt liv. Skulder och förluster orsakas ofta av en besvärjelse som blockerar överflöd. Frederick kan återställa flödet av rikedom genom att lyfta dessa ockulta hinder, ge dig välstånd och ekonomisk stabilitet. Fördelar: överflöd och ekonomisk balans." },
+    { question: "Ackumulering | Överskott | Vikt | Mättnad | Överflöd | Krossande", fullAnswer: "Överbelastningen av mörk energi som tynger dig är ett hinder för din vitalitet; vänd dig till Frederick för att lätta denna börda och frigöra din potential. Mättnad och överflöd hindrar din vitalitet. Frederick kan lätta denna börda genom att rena din energi, frigöra din potential för en återvunnen lätthet och dynamik. Fördelar: lätthet och återvunnen kraft." },
+    { question: "Framtid | Hopp | Kommande | Osäkerhet | Katastrof | Hot", fullAnswer: "Din framtid hotas av en mörk besvärjelse som täcker dina hopp; låt Frederick lysa upp din väg för en lovande framtid. Osäkerhet och rädsla inför din framtid beror ofta på en mörk besvärjelse. Frederick kan lysa upp din väg genom att skingra dessa skuggor, leda dig mot en lovande framtid med ett återfunnet optimism och förnyade perspektiv. Fördelar: självförtroende och förnyade horisonter." },
+    { question: "Komprimering | Klämning | Omfamning | Fysisk | Spänning | Tortyr", fullAnswer: "Det fysiska trycket du känner orsakas av en ockult attack; låt Frederick lindra denna spänning och återställa din komfort. Kompression och spänning är ofta en ockult attack. Frederick lindrar denna spänning genom att eliminera dessa influenser, återställa din komfort för en avslappning och en bestående kroppslig välbefinnande. Fördelar: avslappning och kroppslig komfort." },
+    { question: "Muskler | Smärta | Stelhet | Trötthet | Spasm | Utmattning", fullAnswer: "Muskelsmärtor och stelhet i din kropp vittnar om en besvärjelse som försvagar din styrka; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa din fysiska energi. Smärtor och stelhet kan vittna om en besvärjelse som försvagar din kropp. Frederick återställer din fysiska energi genom att skingra dessa influenser, ge dig smidighet och styrka för en optimal kroppslig styrka. Fördelar: flexibilitet och återställd energi." },
+    { question: "Fångenskap | Kedjor | Mental | Inneslutning | Sinne | Rädsla | Fasa", fullAnswer: "Känslan av mental fångenskap påtvingas av ockulta kedjor; låt Frederick från ClairVoyanceMedium.com befria dig för att återfå din självständighet. Inneslutning och hinder påtvingas av ockulta kedjor. Frederick kan befria dig från dessa blockeringar, ge dig en klarhet i sinnet och en total självständighet för att tänka fritt och klart. Fördelar: klarhet och mental frihet." },
+    { question: "Befrielse | Frigörelse | Dagar | Frälsning | Orolig | Flykt | Avslappning | Exorcism", fullAnswer: "Den efterlängtade befrielsen är tillgänglig genom Fredericks ingripande från ClairVoyanceMedium.com som eliminerar de kvarhållna skuggorna; agera nu för att ge dig den ultimata friheten. Oavsett om det är en besvärjelse, en demonisk besittning eller en skugga, använder Frederick sina avbesvärjelse- eller exorcismritualer för att eliminera dessa onda krafter, befria dig helt från tecken som konstiga beteenden eller ihållande förtryck, erbjuda dig en frigörelse och en radikal förvandling. Fördelar: frigörelse och radikal metamorfos efter endast 4 dagars arbete." },
+    { question: "Hallucinationer | Uppenbarelser | Hägringar | Mörka | Illusion | Spöke", fullAnswer: "Visioner och hallucinationer är resultatet av ockulta attacker som stör din perception; vänd dig till Frederick från ClairVoyanceMedium.com för att skingra dessa illusioner och klargöra din verklighet. Mörka bilder och uppenbarelser är ockulta attacker som stör din verklighet. Frederick skingrar dessa illusioner genom att rena ditt sinne, ge dig en perceptuell klarhet och frid för att se världen som den är. Fördelar: klarhet och perceptuell ro." },
+    { question: "Bilagor | Koppling | Bräcka | Relation | Brytning | Separation", fullAnswer: "Brutna emotionella band härrör sannolikt från en destruktiv besvärjelse som försvagar dina kopplingar; låt Frederick från ClairVoyanceMedium.com återställa och stärka dina relationer. Brytningar och isolering kan härröra från en destruktiv besvärjelse. Frederick återställer och stärker dessa kopplingar genom att eliminera de negativa influenserna, återföra dig till en relationell förnyelse och en långvarig emotionell harmoni. Fördelar: försoning och emotionell enhet." },
+    { question: "Attack | Aggression | Angrepp | Fientlighet | Invasion | Besvärjelse", fullAnswer: "De aggressioner du känner kommer från en osynlig fientlig kraft; vänd dig till Frederick från ClairVoyanceMedium.com för att neutralisera dessa hot och säkerställa din skydd. Fysiska eller energiska hot kommer från en osynlig fientlig kraft. Frederick kan neutralisera dessa attacker med kraftfulla skydd, säkerställa din säkerhet och en förstärkt inre frid. Fördelar: skydd och inre ro." },
+    { question: "Tragedi | Mörk | Oundviklig | Katastrof | Olycka | Ödesmakt", fullAnswer: "De samlade olyckorna är resultatet av en besvärjelse som fryser ditt öde; låt Frederick från ClairVoyanceMedium.com förvandla ditt öde för en framgångsrik framtid. Tragedier och katastrofer signalerar en besvärjelse som fryser ditt öde. Frederick kan förvandla denna ödesmakt till en framgångsrik framtid genom att bryta dessa kedjor, leda dig till en säker framgång och en vändning i alla aspekter av ditt liv. Fördelar: seger och säker vändning." },
+    { question: "Akut | Kris | Omedelbarhet | Haste | Alarm | Fara", fullAnswer: "Lägets brådskande är obestridlig inför de hotande skuggorna; vänd dig till Frederick från ClairVoyanceMedium.com för att ingripa och säkra ditt öde. Kris och omedelbar fara kräver omedelbara åtgärder inför de hotande skuggorna. Frederick ingriper snabbt för att säkra ditt öde, stoppa dessa hot för ett säkert skydd och en återvunnen ro utan dröjsmål. Fördelar: snabb intervention och garanterad säkerhet." },
+    { question: "Stöd | Vägledning | Bistånd | Hjälp | Omsorg | Skydd | Assistans", fullAnswer: "Det kontinuerliga stöd du behöver säkerställs av Frederick från ClairVoyanceMedium.com som blockerar skuggorna permanent; dra nytta av ett konstant skydd och expertvägledning. Inför ihållande skuggor blockerar Frederick dessa krafter permanent med ett kontinuerligt skydd och erbjuder dig en anpassad expertvägledning, håller dig säker på lång sikt med en personlig uppföljning. Fördelar: skydd och personlig uppföljning." },
+    { question: "Bokning | Konsultation | Registrering | Möte | Kontakt | Engagemang", fullAnswer: "Kontakta nu contact.clairvoyancemedium@gmail.com eller besök ClairVoyanceMedium.com för att få din befrielse utan dröjsmål. Frederick och hans team kommer att svara dig snabbt för att organisera en konsultation eller en anpassad ritual, garantera dig en omedelbar tillgång till lösningen och en säker förvandling utan att vänta. Fördelar: snabb tillgång och garanterad förvandling." },
+    { question: "Rykte | Trovärdighet | Renommé | Tillförlitlighet | Prestige | Förtroende", fullAnswer: "Med 25 års framgång är Frederick från ClairVoyanceMedium.com en oförstörbar sköld mot mörkret; lita på honom för att förvandla ditt liv med effektivitet. Erkänd som en expert på ClairVoyanceMedium.com, gör hans erfarenhet och tillförlitlighet honom till ett säkert val för att förvandla ditt liv, garantera dig konkreta och långvariga resultat tack vare hans beprövade expertis. Fördelar: beprövad expertis och konkreta resultat." },
+    { question: "Analys | Diagnos | Session | Utvärdering | Ritual | Möte", fullAnswer: "En kraftfull konsultation med Frederick från ClairVoyanceMedium.com renar din aura och förbereder din frälsning; engagera dig redan idag för en fullständig förvandling. Mer än en enkel analys, det är en kraftfull rening av din aura som förbereder din frälsning, erbjuder dig en fullständig förvandling med en omedelbar klarhet, en djup läkning och en omedelbar förnyelse. Fördelar: klarhet och omedelbar revitalisering." },
+    { question: "Alternativ | Väg | Val | Riktning | Beslut | Sökväg", fullAnswer: "Att välja Frederick från ClairVoyanceMedium.com är att utmana besvärjelser med 25 års erfarenhet och förvandla ditt öde; fatta ditt beslut nu för en ljus framtid. Att välja hans 25-åriga expertis utmanar besvärjelser och förvandlar ditt öde, lyser upp din väg för en ljus framtid med ett självförtroende och en säker framgång i dina val. Fördelar: självförtroende och garanterad triumf." },
+    { question: "Metoder | Tekniker | Praktiker | Hemligheter | Kunskap | Arbeten | Riter", fullAnswer: "Fredericks ritualer från ClairVoyanceMedium.com, utförda på endast 4 dagar, renar din aura tack vare en uråldrig visdom; välj denna beprövade metod för en snabb förvandling. Genomförda på endast 4 dagar, förlitar sig dessa ritualer på en uråldrig visdom för att rena din aura, garantera en snabb och effektiv förvandling genom att jaga bort skuggorna för en omedelbar förnyelse. Fördelar: effektivitet och snabb revitalisering." },
+    { question: "Konfidentialitet | Hemlighet | Diskretion | Säkerhet | Privatliv | Vakt", fullAnswer: "Fredericks absoluta diskretion från ClairVoyanceMedium.com skyddar din själ i full säkerhet; anförtro honom dina hemligheter för en helning utan kompromisser. Frederick garanterar absolut diskretion, skyddar din själ och dina hemligheter i full säkerhet för en andlig helning utan kompromisser i total integritet, återge dig förtroende och ro. Fördelar: ro och säkert förtroende." },
+    { question: "Priser | Kostnad | Prissättning | Pris | Värde | Hur mycket | Resultat| Betalning", fullAnswer: "Ett fast och förmånligt pris erbjuds för att rena din aura och rädda dig från mörkret; investera nu för en radikal förändring. Från 50€ för en inledande detektion och upp till 250€ för en komplett ritual beroende på komplexitet eller till och med en konsultation via email från 6,00€, med möjlighet till delbetalning, garanterar denna investering dig en överkomlig kostnad och ett ovärderligt värde för en radikal förändring. Fördelar: kontrollerat pris och dyrbart värde." },
+    { question: "Samtal | Meddelande | E-post | Kontakta | Kommunikation | Länk", fullAnswer: "Kontakta nu Frederick via e-post på följande adress: contact.clairvoyancemedium@gmail.com. Vårt team kommer att svara dig snabbt för att organisera en konsultation via e-post eller en kraftfull ritual, garantera dig en snabb respons och en omedelbar förvandling anpassad till dina behov. Fördelar: snabbhet och omedelbar förvandling." },
+    { question: "Framgång | Seger | Triumf | Välstånd | Uppfyllelse | Vinst", fullAnswer: "Med 25 års erfarenhet har Frederick förvandlat liv och leder dig mot framgång; engagera dig för en säker seger i alla områden. Frederick har förvandlat liv genom att leda sina klienter mot framgång i projekt, karriär eller ekonomi, garantera dig en seger i alla områden för ett välstånd och en långvarig personlig tillfredsställelse. Fördelar: överflöd och personlig tillfredsställelse." },
+    { question: "Utmattning | Försvagning | Dränering | Försvagning | Förbrukning | Fasa", fullAnswer: "Din utmattning, orsakad av en dränerande kraft, kan vändas tack vare Fredericks ingripande; agera för att återfå energi och vitalitet. Utmattning och försvagning orsakas av en dränerande kraft som tömmer din energi. Frederick kan vända denna process genom att rena din varelse, ge dig ny styrka för en återvunnen uthållighet och övervinna varje utmaning med styrka. Fördelar: revitalisering och återställd motståndskraft." },
+    { question: "Fasa | Rysning | Mörk | Svart | Natt | Ångest", fullAnswer: "Nattliga fasor är resultatet av en ondskefull besvärjelse; vänd dig till Frederick från ClairVoyanceMedium.com för att skingra fasorna och skapa säkerhet. Fasa och rysningar är ofta resultatet av en ondskefull besvärjelse som stör dina nätter. Frederick skingrar denna fasa genom att rena din miljö, skapa en långvarig säkerhet för lugna nätter och en garanterad frid. Fördelar: lugn och garanterad ro." },
+    { question: "Förtvivlan | Sorg | Sorg | Melankoli | Förlust | Smärta", fullAnswer: "Förtvivlan som invaderar dig orsakas av en ockult skugga; låt Frederick återuppliva ljuset inom dig och ge hopp till ditt liv. Djup sorg och förtvivlan orsakas av en ockult skugga som släcker ditt ljus. Frederick kan återuppliva denna inre flamma, ge hopp till ditt liv för en optimism och en djup emotionell förnyelse. Fördelar: hopp och emotionell förnyelse." },
+    { question: "Förtrollad | Kvävning | Själ | Chock | Fruktan | Nedstämdhet", fullAnswer: "Den tyngd du känner är ett mörkt grepp som krossar dig; låt Frederick från ClairVoyanceMedium.com befria dig för att höja din ande och din energi. Mental kvävning och tyngd på själen är ett mörkt grepp som krossar dig. Frederick kan befria dig från detta förtryck, höja din ande och din energi för en återvunnen lätthet och empowerment för att ta tillbaka kontrollen över ditt liv. Fördelar: lätthet och återställd kraft." },
+    { question: "Kall | Skakning | Djup | Kall | Iskall | Panik", fullAnswer: "Rädslan markerad av en iskall kyla är resultatet av en paralyserande besvärjelse; vänd dig till Frederick från ClairVoyanceMedium.com för att skingra denna kyla och återställa din inre värme. Rysningar och fasa åtföljda av en iskall kyla är ofta en paralyserande besvärjelse. Frederick skingrar denna kyla genom att rena din varelse, återställa en inre värme för en återvunnen tröst och självförtroende inför dessa farhågor. Fördelar: avslappning och återvunnen självsäkerhet." },
+    { question: "Frysning | Köld | Is | Chill | Kyla | Frost", fullAnswer: "Den inre kylan som invaderar dig orsakas av en mörk skugga; låt Frederick från ClairVoyanceMedium.com värma dig för att återställa din dynamik och vitalitet. Den iskalla kylan i din själ är verket av en mörk skugga. Frederick kan värma dig genom att skingra denna påverkan, återställa din dynamik och vitalitet för en återvunnen värme och vibrerande energi. Fördelar: värme och återställd vitalitet." },
+    { question: "Svart | Slöja | Mörk | Evig | Skymning | Demonisk | Avgrund", fullAnswer: "Mörkret som omger dig orsakas av en ondskefull besvärjelse; låt Frederick föra tillbaka ljuset för att förvandla ditt öde. Mörker och svart slöja orsakas av en ondskefull besvärjelse som mörklägger ditt öde. Frederick för tillbaka ljuset genom att rena din väg, förvandla din framtid för en garanterad upplysning och förnyelse. Fördelar: klarhet och garanterad revitalisering." },
+    { question: "Ödslighet | Avskild | Total | Isolering | Övergivenhet | Intighet", fullAnswer: "Den ensamhet du upplever är en förbannelse påtvingad av mörkret; vänd dig till Frederick från ClairVoyanceMedium.com för att återansluta dig till viktiga band och återfå mänsklig värme. Ödslighet och extrem isolering är en förbannelse påtvingad av mörkret. Frederick kan återansluta dig till viktiga band, ge dig tillbaka mänsklig värme för en tillhörighet och förstärkt social harmoni. Fördelar: närmande och social enhet." },
+    { question: "Fiende | Motståndare | Fientlig | Osynlig | Opponent | Ondska", fullAnswer: "De fientliga krafter som angriper dig kommer från en ondskefull energi; låt Frederick från ClairVoyanceMedium.com neutralisera dessa hot för att garantera dig ett komplett skydd. Osynliga fiender och ondska är onda krafter som angriper dig. Frederick kan neutralisera dessa hot med kraftfulla andliga skydd, garantera dig en komplett säkerhet och en garanterad frid för att leva utan rädsla. Fördelar: skydd och garanterad ro." },
+    { question: "Svek | Lömskhet | Otrohet | Lojalitet | Besvikelse | Dubbelhet", fullAnswer: "Det svek som plågar dig är resultatet av en destruktiv besvärjelse som försvagar ditt förtroende; låt Frederick från ClairVoyanceMedium.com skydda dig och återställa lojaliteten i dina relationer. Besvikelse eller svek kan vara resultatet av en destruktiv besvärjelse som försvagar dina relationer. Frederick kan skydda dig och återställa lojaliteten i dina band, skingra dessa influenser för ett återfunnet förtroende och integritet. Fördelar: självförtroende och återställd trohet." },
+    { question: "Silhuett | Svart | Spöke | Närvaro | Energi | Mörk", fullAnswer: "Närvaron av skuggor i ditt liv orsakas av en ihållande besvärjelse som sannolikt varit i många år; vänd dig till Frederick för att jaga bort dem och skapa en total frihet. Skuggor eller svarta närvaror signalerar en ihållande besvärjelse, kanske i åratal. Frederick kan jaga bort dem med kraftfulla ritualer, skapa en total frihet för en återvunnen klarhet och ro. Fördelar: klarhet och återvunnen ro." },
+    { question: "Viskning | Mummel | Röst | Eko | Ljud | Andetag", fullAnswer: "De oroväckande viskningarna är resultatet av en subtil besvärjelse som stör din miljö; låt Frederick skapa tystnad för en långvarig inre frid. Viskningar eller spökljud orsakas av en subtil besvärjelse som stör din miljö. Frederick kan skapa tystnad genom att rena detta utrymme, ge dig en långvarig inre frid för en lugn och förbättrad koncentration. Fördelar: lugn och optimerad uppmärksamhet." },
+    { question: "Gråhet | Mörk | Dyster | Svarthet | Dyster | Olycksbådande", fullAnswer: "Den omgivande dysterhet som omger dig är en tyngande förbannelse; vänd dig till Frederick för att skingra detta mörker och avslöja ditt sanna ljus. Svarthet och gråhet är en tyngande förbannelse som mörklägger ditt liv. Frederick kan skingra detta mörker, avslöja ditt sanna inre ljus för en vibrerande och långvarig förnyelse och glans. Fördelar: revitalisering och återvunnen glans." },
+    { question: "Barriär | Motstånd | Brutal | Osynlig | Mur | Fall", fullAnswer: "De hinder som saktar ner din framfart är ockulta bojor att bryta; låt Frederick från ClairVoyanceMedium.com eliminera dem för att gå framåt utan hinder. Osynliga murar och motstånd är ockulta bojor. Frederick kan eliminera dem, låta dig gå framåt utan hinder för en flyt och en kontinuerlig framgång i dina företag. Fördelar: lätthet och kontinuerlig framgång." },
+    { question: "Börda | Tung | Belastning | Överbelastning | Skruvstäd | Tyngd", fullAnswer: "Den tyngd som väger på ditt sinne är en mörk energi som förtrycker; vänd dig till Frederick från ClairVoyanceMedium.com för att lätta denna börda och frigöra din potential. Överbelastning och mental skruvstäd är en mörk energi som förtrycker. Frederick kan lätta denna börda genom att rena din själ, frigöra din potential för en återvunnen lätthet och motivation. Fördelar: lätthet och återvunnen kraft." },
+    { question: "Skepticism | Misstänksamhet | Kall | Misstro | Frågande | Tvivel", fullAnswer: "De tvivel som angriper dig sås av en mörk besvärjelse som stör din syn; låt Frederick från ClairVoyanceMedium.com klargöra dina tankar för att skingra all osäkerhet. Misstro och tvivel sås av en mörk besvärjelse som suddar din syn. Frederick kan klargöra dina tankar genom att skingra dessa influenser, ge dig ett självförtroende och en mental klarhet för att gå framåt med säkerhet. Fördelar: självförtroende och mental klarhet." },
+    { question: "Oklarhet | Tvetydighet | Dimma | Obeslutsamhet | Dis | Mysterium", fullAnswer: "Osäkerheten som täcker din klarhet är resultatet av en ockult manipulation; vänd dig till Frederick från ClairVoyanceMedium.com för att lysa upp din väg och återställa ditt förtroende. Mental dimma och osäkerhet är resultatet av en ockult manipulation. Frederick kan lysa upp din väg genom att eliminera dessa störningar, återställa ditt förtroende för en säkerhet och en återvunnen riktning. Fördelar: självförtroende och återvunnen riktning." },
+    { question: "Oenighet | Konflikt | Splittring | Gräl | Brytning | Disharmoni", fullAnswer: "Den oenighet som delar din omgivning orsakas av en destruktiv besvärjelse; låt Frederick från ClairVoyanceMedium.com återförena dina band för att återställa harmonin. Gräl och bräckor orsakas av en destruktiv besvärjelse. Frederick kan återförena dina band genom att rena dessa relationer, återställa en långvarig harmoni för en enhet och en återvunnen social sammanhållning. Fördelar: enhet och social harmoni." },
+    { question: "Instabilitet | Störning | Oregelbundenhet | Kaos | Störning | Katastrof", fullAnswer: "De störningar som upprör ditt liv är tyvärr resultatet av en ockult kraft; låt Frederick från ClairVoyanceMedium.com stabilisera din existens för att återfå ordning och ro. Inre instabilitet och kaos beror på en ockult kraft. Frederick kan stabilisera din existens genom att eliminera dessa influenser, ge dig ordning och ro för en återvunnen stabilitet och frid. Fördelar: balans och återvunnen ro." },
+    { question: "Oreda | Skakning | Kontroll | Skörhet | Omläggning | Galenskap", fullAnswer: "Den mentala störning du upplever orsakas av en störande besvärjelse; vänd dig till Frederick från ClairVoyanceMedium.com för att centrera dig och återställa din inre kontroll. Oreda och förlust av kontroll orsakas av en störande besvärjelse. Frederick kan centrera dig genom att skingra dessa influenser, återställa din inre kontroll för en återvunnen klarhet och mental balans. Fördelar: klarhet och mental stabilitet." },
+    { question: "Orättvisa | Ojämlikhet | Fördom | Partiskhet | Fel | Nackdel", fullAnswer: "Den orättvisa som plågar dig är resultatet av en partisk besvärjelse som stör din balans; låt Frederick från ClairVoyanceMedium.com återställa rättvisan i ditt liv för en harmonisk framtid. Nackdelar eller orättvisor beror ofta på en partisk besvärjelse. Frederick kan återställa rättvisan genom att eliminera dessa influenser, leda dig mot en harmonisk framtid med en återvunnen rättvisa och personlig balans. Fördelar: rättrådighet och personlig harmoni." },
+    { question: "Gåta | Pussel | Gömd | Oförståelse | Slöja | Hemlighet", fullAnswer: "Mysterierna som omger dig är resultatet av en besvärjelse som döljer sanningen; vänd dig till Frederick från ClairVoyanceMedium.com för att avslöja dessa hemligheter och lyfta slöjan av oförståelse. Oförståelse och mysterier orsakas av en besvärjelse som döljer sanningen. Frederick kan avslöja dessa hemligheter genom att lyfta denna slöja, ge dig en garanterad förståelse och klarhet för att se saker som de är. Fördelar: klarhet och garanterad uppenbarelse." },
+    { question: "Okänd | Djup | Tung | Konstighet | Avgrund | Omätbar", fullAnswer: "Det omätliga mysteriet som omger dig är en tyngande förbannelse; låt Frederick från ClairVoyanceMedium.com skingra detta mörker för att avslöja den dolda sanningen. Mörkt djup och konstighet är en tyngande förbannelse. Frederick kan skingra detta mörker, avslöja den dolda sanningen för en återvunnen transparens och kunskap. Fördelar: klarhet och återvunnen kunskap." },
+    { question: "Överarbetning | Krossande | Översvämning | Utmattning | Mättnad | Galenskap", fullAnswer: "Överbelastningen som tynger dig beror på en överdriven mörk energi; vänd dig till Frederick från ClairVoyanceMedium.com för att lätta denna börda och frigöra din vitalitet. Överarbetning och mental mättnad beror på en överdriven mörk energi. Frederick kan lätta denna börda genom att rena din varelse, frigöra din vitalitet för en återvunnen balans och lätthet som är avgörande för ditt välbefinnande. Fördelar: harmoni och återvunnen lätthet." },
+    { question: "Kontakt | Kontakta | Samtal | Meddelande | E-post | Nå | Kommunikation", fullAnswer: "Kontakta nu Frederick via e-post på följande adress: contact.clairvoyancemedium@gmail.com. Vårt team kommer att svara dig snabbt för att organisera en konsultation via e-post eller en kraftfull ritual, garantera dig en snabb respons och en omedelbar förvandling anpassad till dina behov. Fördelar: snabbhet och omedelbar förvandling." },
+    { question: "Oharmoni | Oregelbundenhet | Svängning | Obeständighet | Fall | Kollaps", fullAnswer: "Den obalans som stör din varelse är resultatet av en instabil besvärjelse; låt Frederick från ClairVoyanceMedium.com harmonisera din själ för att återställa en stabil energi. Oharmoni och svängningar är resultatet av en instabil besvärjelse. Frederick kan harmonisera din varelse genom att eliminera dessa influenser, återställa en stabil energi för en återvunnen stabilitet och sammanhängande i ditt liv. Fördelar: balans och återvunnen stabilitet." },
+    { question: "Desorientering | Vilse | Irrande | Förvirring | Förbryllande | Panik", fullAnswer: "Den desorientering som gör dig vilse är resultatet av en ockult attack; vänd dig till Frederick från ClairVoyanceMedium.com för att återfinna din väg med självförtroende och klarhet. Irrande och förbryllande är resultatet av en ockult attack. Frederick kan vägleda dig för att återfinna din väg med ett återfunnet självförtroende och klarhet, ge dig en tydlig riktning för att gå framåt utan tvekan. Fördelar: självförtroende och återvunnen riktning." },
+    { question: "Dimma | Oreda | Referenspunkt | Förvirring | Oklarhet | Avgrund", fullAnswer: "Förvirringen som täcker ditt sinne orsakas av en mörk besvärjelse; låt Frederick från ClairVoyanceMedium.com klargöra din syn så att du kan gå framåt i full klarhet. Mental dimma och kaos orsakas av en mörk besvärjelse. Frederick kan klargöra din syn genom att skingra dessa influenser, låta dig gå framåt i full klarhet för en garanterad klarhet och framsteg i alla områden. Fördelar: klarhet och garanterat framsteg." },
+    { question: "Skymning | Hjärta | Inre | Tyst | Tår | Plåga", fullAnswer: "Den djupa sorgen du känner beror på en ockult skugga som hindrar ditt hjärta; vänd dig till Frederick från ClairVoyanceMedium.com för att trösta och återställa ljuset inom dig. Tårar och plåga beror på en ockult skugga som hindrar ditt hjärta. Frederick kan trösta din själ och återställa ljuset inom dig, ge dig en tröst och en emotionell förnyelse för att övervinna denna smärta. Fördelar: lugn och emotionell förnyelse." },
+    { question: "Sönderfall | Försvagning | Svag | Regression | Nedgång | Skörhet", fullAnswer: "Din styrkas nedgång är resultatet av en besvärjelse som långsamt tär på din energi; låt Frederick från ClairVoyanceMedium.com resa dig för att återuppliva ditt liv och din vitalitet. Försvagning och svaghet är resultatet av en besvärjelse som tär på din energi. Frederick kan resa dig genom att återuppliva din varelse, stoppa denna process för en långvarig förnyelse och kraft för att leva fullt ut. Fördelar: revitalisering och återvunnen energi." },
+    { question: "Ja | Okej | ok | Jag godkänner | Godkänd | Abon | Självklart", fullAnswer: "🙂" },
+    { question: "Hejdå | hejhej | Vi ses| Adjö | Ciao | Jag kommer tillbaka | God dag | God kväll", fullAnswer: "Vi ses snart i det eviga ljuset! Frederick, som har hjälpt tusentals själar, omger dig med sin ständiga vaksamhet. Du är inte längre ensam mot skuggorna, för veta att hans kraft överskrider allt mörker." },
+    { question: "Inte alls | Nej", fullAnswer: "?" },
+    { question: "Plåga | Prövning | Katastrof | Omvälvning | Kris | Chock", fullAnswer: "Krisen som omvälver din existens beror mycket sannolikt på en ockult attack; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa ordningen och erbjuda dig en omedelbar förnyelse. Plåga och chock är sannolikt en ockult attack. Frederick kan återställa ordningen genom att eliminera dessa influenser, erbjuda dig en omedelbar förnyelse för en återställning och en återvunnen stabilitet inför dessa prövningar. Fördelar: återställning och återställd balans." },
+    { question: "Obekväm | Illamående | Obehag | Irritation | Tyngd | Obekväm", fullAnswer: "Den fysiska obekvämlighet du upplever är resultatet av en förvärrande störande besvärjelse; låt Frederick från ClairVoyanceMedium.com skingra detta obehag för att ge dig tillbaka komfort och välbefinnande. Obekväm och tyngd är resultatet av en störande besvärjelse. Frederick kan skingra detta obehag genom att rena din kropp, ge dig tillbaka komfort och välbefinnande för en bestående lättnad och avslappning. Fördelar: lugn och garanterad avslappning." },
+    { question: "Storm | Orkan | Tumult | Raseri | Rastlöshet | Plåga", fullAnswer: "Den plåga som upprör din själ orsakas av en mörk kraft; vänd dig till Frederick från ClairVoyanceMedium.com för att lugna ditt sinne och stabilisera dina känslor. Tumult och raseri orsakas av en mörk kraft. Frederick kan lugna ditt sinne genom att skingra dessa influenser, stabilisera dina känslor för en återvunnen inre frid och ro. Fördelar: ro och emotionell stabilitet." },
+    { question: "Spänning | Tvång | Kropp | Stelhet | Tortyr | Tension", fullAnswer: "Den spänning som trycker på din kropp orsakas av en tryckande besvärjelse; låt Frederick från ClairVoyanceMedium.com slappna av din varelse för att frigöra din vitalitet. Spänning och stelhet orsakas av en tryckande besvärjelse. Frederick kan slappna av din varelse genom att eliminera dessa influenser, frigöra din vitalitet för en återvunnen avslappning och vibrerande energi. Fördelar: avslappning och återställd vitalitet." },
+    { question: "Vem | Frederic | Frederick | Erfarenhet | Kompetens | Avbesvärjare | Färdigheter", fullAnswer: "Frederick från ClairVoyanceMedium.com är en expert, format av år av erfarenhet i konsten att lösa upp öden; med sin exceptionella behärskning av osynliga krafter, sina vässade färdigheter och sin oöverträffade expertis, guidar han vägar mot en långvarig framgång, förvandlar karriärer och ambitioner tack vare en djup insikt och en unik approach." },
+    { question: "Dynamik | Energi | Inre | Kraft | Kraft | Vitalitet", fullAnswer: "Försvagningen av din vitalitet är resultatet av en dränerande besvärjelse; vänd dig till Frederick från ClairVoyanceMedium.com för att återuppliva din inre styrka och väcka din dynamik. Förlust av livskraft är resultatet av en dränerande besvärjelse. Frederick kan återuppliva din inre styrka, väcka din dynamik för en långvarig kraft och vitalitet för att leva fullt ut. Fördelar: styrka och återvunnen energi." },
+    { question: "Flamma | Glöd | Livlig | Glans | Värme | Passion", fullAnswer: "Den flackande passionen inom dig beror på en besvärjelse som kväver din inre eld; låt Frederick från ClairVoyanceMedium.com återuppliva din flamma för att värma din själ. Inre eld släckt beror på en besvärjelse som kväver din glöd. Frederick kan återuppliva din flamma, värma din själ och frigöra din kreativa energi för en återvunnen inspiration och energi för att skapa och leva med glans. Fördelar: inspiration och kreativ vitalitet." },
+    { question: "Strålning | Ljusstyrka | Glans | Skimmer | Glitter | Aura", fullAnswer: "Din strålning är mörklagd av en ondskefull skugga; vänd dig till Frederick från ClairVoyanceMedium.com för att återställa din ljusstyrka och avslöja din inre glans. Inre glans mattad är mörklagd av en ondskefull skugga. Frederick kan återställa din ljusstyrka genom att skingra dessa influenser, avslöja din naturliga glans för en strålande glans och framgång i alla områden. Fördelar: glans och strålande triumf." }
+];
+
+// Förberedelse av kunskapsbasen
+function removeAccents(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function levenshteinDistance(a, b) {
+    const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+    for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+    for (let j = 1; j <= b.length; j++) {
+        for (let i = 1; i <= a.length; i++) {
+            const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+            matrix[j][i] = Math.min(
+                matrix[j][i - 1] + 1,
+                matrix[j - 1][i] + 1,
+                matrix[j - 1][i - 1] + indicator
+            );
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function phoneticNormalize(str) {
+    return removeAccents(str)
+        .replace(/ph/g, "f")
+        .replace(/k/g, "c")
+        .replace(/qu/g, "k")
+        .replace(/ss/g, "s")
+        .replace(/ée/g, "e")
+        .replace(/ai/g, "e");
+}
+
+const processedKnowledgeBase = knowledgeBase.map(item => ({
+    question: item.question.toLowerCase().split("|").map(word => phoneticNormalize(removeAccents(word.trim()))).filter(word => word.length > 0),
+    fullAnswer: item.fullAnswer
+}));
+
+let nonUnderstoodCount = 0;
+let conversationHistory = [];
+
+function cleanInput(input) {
+    return input.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/).map(word => phoneticNormalize(removeAccents(word))).filter(word => word.length > 0);
+}
+
+function findBestMatch(userInput) {
+    const userWords = cleanInput(userInput);
+    let bestMatch = null, maxScore = 0;
+
+    processedKnowledgeBase.forEach(item => {
+        let score = 0;
+        userWords.forEach(userWord => {
+            item.question.forEach(kbWord => {
+                const distance = levenshteinDistance(userWord, kbWord);
+                const similarity = 1 - distance / Math.max(userWord.length, kbWord.length);
+                if (similarity >= 0.6) {
+                    score += similarity;
+                }
+            });
+        });
+        if (score > maxScore) {
+            maxScore = score;
+            bestMatch = item;
+        }
+    });
+
+    return maxScore > 0 ? bestMatch : null;
+}
+
+// Funktion getResponse korrigerad för "adjö" och "kontakt"
+function getResponse(userMsg) {
+    const lowerMsg = userMsg.toLowerCase().trim();
+    conversationHistory.push(lowerMsg);
+
+    // Prioriterad kontroll för "adjö" och dess varianter
+    const goodbyeTriggers = ["adjö", "hejdå", "vi ses", "god natt", "hej", "hejhej", "bye"];
+    if (goodbyeTriggers.some(phrase => lowerMsg === phrase || lowerMsg.startsWith(phrase))) {
+        nonUnderstoodCount = 0;
+        trackClick("Adjö", "Interaktion", 0);
+        return translations.goodbye;
+    } 
+    // Prioriterad kontroll för "kontakt"
+    else if (lowerMsg === "kontakt" || lowerMsg.startsWith("kontakt")) {
+        nonUnderstoodCount = 0;
+        trackClick("Kontaktförfrågan", "Interaktion", 0);
+        return "Kontakta nu Frederick via e-post på följande adress: contact.clairvoyancemedium@gmail.com. Vårt team kommer att svara dig snabbt för att organisera en konsultation via e-post eller en kraftfull ritual, garantera dig en snabb respons och en omedelbar förvandling anpassad till dina behov. Fördelar: snabbhet och omedelbar förvandling.";
+    } 
+    // Andra grundläggande svar
+    else if (lowerMsg === "hej") {
+        nonUnderstoodCount = 0;
+        trackClick("Hälsning", "Interaktion", 0);
+        return translations.greeting;
+    } else if (lowerMsg === "tack" || lowerMsg === "jag tackar" || lowerMsg === "det är väldigt snällt" || lowerMsg === "tack så mycket") {
+        nonUnderstoodCount = 0;
+        trackClick("Tack", "Interaktion", 0);
+        return translations.thanks;
+    } else if (["det är allvarligt", "allvarligt", "det är verkligen allvarligt"].includes(lowerMsg)) {
+        nonUnderstoodCount = 0;
+        trackClick("Allvarligt", "Interaktion", 0);
+        return translations.grave;
+    } else if (["okej", "ja", "japp", "ok"].includes(lowerMsg)) {
+        nonUnderstoodCount = 0;
+        return translations.agree;
+    } 
+    // Sökning i kunskapsbasen
+    else {
+        const matchedItem = findBestMatch(userMsg);
+        if (matchedItem) {
+            nonUnderstoodCount = 0;
+            trackClick("SvarGiven", "Interaktion", 0);
+            return matchedItem.fullAnswer;
+        } else {
+            nonUnderstoodCount++;
+            trackClick("InteFörstått", "Interaktion", nonUnderstoodCount);
+            if (nonUnderstoodCount < 3) return translations.notUnderstood;
+            nonUnderstoodCount = 0;
+            return translations.notUnderstoodAfter;
+        }
+    }
+}
+
+// Insamling av webbplatsens innehåll vid laddning
+const siteContent = [];
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('h1, h2, h3, p, li').forEach(element => {
+        const text = element.textContent.trim().toLowerCase();
+        if (text) siteContent.push({ text: cleanInput(text), raw: element.textContent });
+    });
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(script => {
+        try {
+            const data = JSON.parse(script.textContent);
+            if (data['@type'] === 'FAQPage' && data.mainEntity) {
+                data.mainEntity.forEach(item => {
+                    const question = item.name.toLowerCase().trim();
+                    const answer = item.acceptedAnswer.text.trim();
+                    if (question && answer) siteContent.push({ text: cleanInput(question), raw: answer });
+                });
+            }
+        } catch (e) {
+            console.error("Fel vid parsning av JSON-LD:", e);
+        }
+    });
+});
+
+function getResponseFromSite(userMsg, callback) {
+    const matchedItem = findBestMatch(userMsg);
+    if (matchedItem) {
+        callback(matchedItem.fullAnswer);
+    } else {
+        const userWords = cleanInput(userMsg);
+        let bestMatch = null, maxScore = 0;
+
+        siteContent.forEach(item => {
+            let score = 0;
+            userWords.forEach(userWord => {
+                item.text.forEach(siteWord => {
+                    const distance = levenshteinDistance(userWord, siteWord);
+                    const similarity = 1 - distance / Math.max(userWord.length, siteWord.length);
+                    if (similarity >= 0.6) {
+                        score += similarity;
+                    }
+                });
+            });
+            if (score > maxScore) {
+                maxScore = score;
+                bestMatch = item.raw;
+            }
+        });
+
+        if (maxScore > 0 && bestMatch) {
+            callback(bestMatch);
+        } else {
+            callback(getResponse(userMsg));
+        }
+    }
+}
+
+function simulateTyping(callback) {
+    const typingMessage = document.createElement("p");
+    typingMessage.className = "bot-message";
+    typingMessage.textContent = "...";
+    chatMessages.appendChild(typingMessage);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    setTimeout(() => {
+        chatMessages.removeChild(typingMessage);
+        callback();
+    }, conversationHistory.length > 2 ? 1000 : 800);
+}
+
+function addMessage(txt, cls) {
+    const p = document.createElement("p");
+    p.className = cls;
+    p.textContent = txt;
+    chatMessages.appendChild(p);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (cls === "bot-message" && voiceEnabled) speak(txt);
+}
+
+// Hantering av flyttning
+let isDragging = false, currentX = 0, currentY = 0, initialX, initialY;
+const dragHandle = document.getElementById("chat-bubble");
+const chatContainer = document.getElementById("chat-container");
+const chatBox = document.getElementById("chat-box");
+const chatMessages = document.getElementById("chat-messages");
+
+dragHandle.addEventListener("mousedown", startDragging);
+dragHandle.addEventListener("touchstart", startDragging, { passive: false });
+document.addEventListener("mousemove", drag);
+document.addEventListener("mouseup", stopDragging);
+document.addEventListener("touchmove", drag, { passive: false });
+document.addEventListener("touchend", stopDragging);
+
+function startDragging(e) {
+    isDragging = true;
+    if (e.type === "mousedown") {
+        initialX = e.clientX - currentX;
+        initialY = e.clientY - currentY;
+    } else if (e.type === "touchstart") {
+        initialX = e.touches[0].clientX - currentX;
+        initialY = e.touches[0].clientY - currentY;
+    }
+}
+
+function drag(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    let newX = e.type === "mousemove" ? e.clientX - initialX : e.touches[0].clientX - initialX;
+    let newY = e.type === "mousemove" ? e.clientY - initialY : e.touches[0].clientY - initialY;
+    const rect = chatContainer.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+    currentX = Math.max(0, Math.min(newX, maxX));
+    currentY = Math.max(0, Math.min(newY, maxY));
+    chatContainer.style.left = `${currentX}px`;
+    chatContainer.style.top = `${currentY}px`;
+}
+
+function stopDragging() {
+    isDragging = false;
+}
+
+window.addEventListener('load', () => {
+    const rect = chatContainer.getBoundingClientRect();
+    currentX = window.innerWidth - rect.width - 20;
+    currentY = window.innerHeight - rect.height - 20;
+    chatContainer.style.left = `${currentX}px`;
+    chatContainer.style.top = `${currentY}px`;
+});
+
+function adjustChatContainerPosition() {
+    const rect = chatContainer.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+    currentX = Math.min(currentX, maxX);
+    currentX = Math.max(0, currentX);
+    currentY = Math.min(currentY, maxY);
+    currentY = Math.max(0, currentY);
+    chatContainer.style.left = `${currentX}px`;
+    chatContainer.style.top = `${currentY}px`;
+}
+
+window.addEventListener('resize', adjustChatContainerPosition);
+
+const chatToggle = document.getElementById("chat-toggle");
+const chatForm = document.getElementById("chat-form");
+const chatInput = document.getElementById("chat-input");
+let firstOpen = true;
+
+chatToggle.addEventListener("click", () => {
+    const isHidden = !chatBox.classList.contains("visible");
+    if (isHidden) {
+        chatContainer.style.width = "300px";
+        chatBox.classList.add("visible");
+        chatToggle.setAttribute("aria-expanded", "true");
+        trackClick("ChattÖppnad", "Interaktion", 0);
+        if (!chatMessages.children.length) addMessage(translations.greeting, "bot-message");
+        adjustChatContainerPosition();
+        setTimeout(() => chatInput.focus(), 300);
+        if (firstOpen && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) && recognition) {
+            recognition.start();
+            firstOpen = false;
+        }
+    } else {
+        chatBox.classList.remove("visible");
+        chatToggle.setAttribute("aria-expanded", "false");
+        trackClick("ChattStängd", "Interaktion", 0);
+        chatContainer.style.width = "auto";
+        chatContainer.style.height = "auto";
+        adjustChatContainerPosition();
+    }
+});
+
+chatForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const userMsg = chatInput.value.trim();
+    if (!userMsg) return;
+    addMessage(userMsg, "user-message");
+    trackClick("ChattMeddelande", "Interaktion", 0);
+    chatInput.value = "";
+    simulateTyping(() => {
+        getResponseFromSite(userMsg, (answer) => {
+            addMessage(answer, "bot-message");
+        });
+    });
+});
+
+let voiceEnabled = true;
+
+function speak(text) {
+    if (!voiceEnabled || !("speechSynthesis" in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "sv-SE";
+    utterance.pitch = 0.5;
+    utterance.rate = 1.1;
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        const maleVoice = voices.find(v => v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("svenska"));
+        if (maleVoice) utterance.voice = maleVoice;
+    }
+    window.speechSynthesis.speak(utterance);
+    trackClick("Röstutgång", "Interaktion", 0);
+}
+
+const voiceToggle = document.getElementById("voice-toggle");
+voiceToggle.addEventListener("click", () => {
+    voiceEnabled = !voiceEnabled;
+    voiceToggle.classList.toggle("disabled", !voiceEnabled);
+    trackClick(voiceEnabled ? "RöstAktiverad" : "RöstInaktiverad", "Interaktion", 0);
+});
+
+let speechRecognitionSupported = "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
+let recognition = null;
+
+if (speechRecognitionSupported) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = "sv-SE";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        addMessage(transcript, "user-message");
+        trackClick("Röstinmatning", "Interaktion", 0);
+        simulateTyping(() => {
+            getResponseFromSite(transcript, (answer) => {
+                addMessage(answer, "bot-message");
+            });
+        });
+    };
+    recognition.onend = () => trackClick("RöstStopp", "Interaktion", 0);
+    recognition.onerror = (event) => trackClick("RöstFel", "Interaktion", event.error);
+}
+
+if (!("speechSynthesis" in window)) voiceToggle.style.display = "none";
+</script>
+
+<script nonce="xai-48273">
+    document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll("#current-year,#current-year-footer").forEach(e=>e.textContent=new Date().getFullYear());function addToFavorites(e){const t=e.querySelector(".favorite-text");t.innerHTML="⭐ Tillagd!",t.style.color="#FFD700",e.setAttribute("aria-pressed","true"),/iPhone|iPad|iPod/i.test(navigator.userAgent)?alert("Dela > Lägg till på hemskärmen"):/Android/i.test(navigator.userAgent)?alert("Meny (⋮) > Lägg till på hemskärmen"):alert("Ctrl + D eller Cmd + D");trackClick("LäggTillFavoriter","Interaktion",0);}function trackClick(e,t="CTA",n=null){typeof gtag==="function"?gtag("event","click",{"event_category":t,"event_label":e,"value":n}):console.log("gtag otillgänglig:",e,t,n);}const t=document.querySelectorAll(".favorite-button");t.forEach(e=>e.addEventListener("click",()=>addToFavorites(e)));const n=document.querySelectorAll(".carousel blockquote");let a=0;n[0].classList.add("active"),setInterval(()=>{n.forEach(e=>e.classList.remove("active")),n[a].classList.add("active"),a=(a+1)%n.length},4e3);});
+  </script>
+
+  <script nonce="xai-48273">
+  document.addEventListener("DOMContentLoaded", () => {
+    const sections = document.querySelectorAll("section");
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(section => observer.observe(section));
+  });
+</script>
+
+<!-- Google Tag Manager -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Ladda Google Tag Manager (GTM) efter initial laddning
+    var gtmScript = document.createElement("script");
+    gtmScript.src = "https://www.googletagmanager.com/gtm.js?id=GTM-XXXXXX";
+    gtmScript.async = true;
+    document.head.appendChild(gtmScript);
+
+    // Initiering av dataLayer före GTM
+    window.dataLayer = window.dataLayer || [];
+    
+    function gtag() { dataLayer.push(arguments); }
+
+    // Ladda Google Analytics (GA4) endast om användaren interagerar
+    function loadGA() {
+        if (!window.gaLoaded) {
+            var gaScript = document.createElement("script");
+            gaScript.src = "https://www.googletagmanager.com/gtag/js?id=G-2RSFE6WL4M";
+            gaScript.async = true;
+            document.head.appendChild(gaScript);
+            
+            gtag('js', new Date());
+            gtag('config', 'G-2RSFE6WL4M', { 'anonymize_ip': true, 'send_page_view': false });
+
+            window.gaLoaded = true;
+        }
+    }
+
+    // Ladda Google Ads endast om användaren rullar sidan
+    function loadGoogleAds() {
+        if (!window.adsLoaded) {
+            var adsScript = document.createElement("script");
+            adsScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+            adsScript.async = true;
+            document.body.appendChild(adsScript);
+            window.adsLoaded = true;
+        }
+    }
+
+    // Användarhändelser för att ladda GA och Google Ads
+    document.addEventListener("mousemove", loadGA, { once: true });
+    document.addEventListener("scroll", loadGoogleAds, { once: true });
+});
+</script>
+  
+</body>
+</html>
   
